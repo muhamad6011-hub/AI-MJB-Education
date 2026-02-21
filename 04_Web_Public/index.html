@@ -3,67 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI MJB-EDU Dashboard</title>
+    <title>MJB-Edu AI Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #0a0a0a; color: #00f3ff; font-family: 'Courier New', monospace; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { border: 1px solid #00f3ff; padding: 20px; border-radius: 10px; background: rgba(0, 243, 255, 0.05); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
-        h1, h2 { text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #00f3ff; padding-bottom: 10px; }
-        .news-item { border-left: 3px solid #00f3ff; padding-left: 15px; margin-bottom: 20px; transition: 0.3s; }
-        .news-item:hover { background: rgba(0, 243, 255, 0.1); cursor: pointer; }
-        a { color: #fff; text-decoration: none; font-weight: bold; }
-        .status-ok { color: #00ff00; }
+        body { background-color: #050505; color: #e5e7eb; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-item:hover { background: rgba(0, 243, 255, 0.1); color: #00f3ff; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .ai-message { border-left: 4px solid #06b6d4; }
     </style>
 </head>
-<body>
+<body class="flex h-screen overflow-hidden">
 
-    <h1>🚀 AI MJB-EDU CENTRAL INTELLIGENCE</h1>
+    <div class="w-64 glass flex flex-col p-4">
+        <h1 class="text-xl font-bold mb-8 text-cyan-400">MJB-EDU <span class="text-xs text-white block">Intelligence System</span></h1>
+        
+        <nav class="flex-1">
+            <button onclick="showPage('home')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition">🏠 Dashboard</button>
+            <button onclick="showPage('chat')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition">💬 AI Chat</button>
+            <button class="sidebar-item w-full text-left p-3 rounded-lg mb-2 opacity-50 cursor-not-allowed">📊 Big Data (Soon)</button>
+        </nav>
 
-    <div class="grid">
-        <div class="card">
-            <h2>💻 System Monitor</h2>
-            <div id="system-stats">Memuat data sensor...</div>
-        </div>
-
-        <div class="card">
-            <h2>🌐 Global AI News</h2>
-            <div id="news-feed">Menghubungkan ke satelit berita...</div>
+        <div class="text-xs text-gray-500 border-t border-gray-800 pt-4">
+            System Status: <span class="text-green-500">Online</span>
         </div>
     </div>
 
-    <script>
-        // 1. MENGAMBIL DATA SISTEM PC
-        fetch('data/status_live.json')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('system-stats').innerHTML = `
-                    <p>Waktu Scan: ${data.Timestamp}</p>
-                    <p>CPU Usage: <strong>${data.CPU_Usage}%</strong></p>
-                    <p>RAM Free: <strong>${data.RAM_Free_GB} GB</strong></p>
-                    <p>Status: <span class="status-ok">ACTIVE</span></p>
-                `;
-            });
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        
+        <div id="page-home" class="p-8">
+            <h2 class="text-3xl font-bold mb-6">Welcome Back, Master.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-cyan-400 font-bold mb-4">PC STATUS</h3>
+                    <div id="status-content" class="space-y-2 text-sm text-gray-300">Memuat sensor...</div>
+                </div>
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-cyan-400 font-bold mb-4">WORLD NEWS</h3>
+                    <div id="news-content" class="space-y-4 text-xs h-64 overflow-y-auto">Memuat berita...</div>
+                </div>
+            </div>
+        </div>
 
-        // 2. MENGAMBIL DATA BERITA GLOBAL
-        fetch('data/latest_news.json')
-            .then(res => res.json())
-            .then(data => {
-                const feed = document.getElementById('news-feed');
-                feed.innerHTML = '';
-                data.Articles.forEach(item => {
-                    feed.innerHTML += `
-                        <div class="news-item">
-                            <a href="${item.url}" target="_blank">${item.title}</a>
-                            <div style="font-size: 0.8em; color: #888; margin-top:5px;">
-                                Sumber: ${item.source.name} | ${new Date(item.publishedAt).toLocaleDateString()}
+        <div id="page-chat" class="hidden flex flex-col h-full">
+            <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6">
+                <div class="max-w-3xl mx-auto glass p-4 rounded-xl text-gray-400">
+                    Halo! Saya AI MJB-Edu. Saya sudah membaca buku Anda. Silakan tanya apa saja terkait isi buku tersebut!
+                </div>
+            </div>
+            
+            <div class="p-8 border-t border-gray-800 bg-black/50">
+                <div class="max-w-3xl mx-auto flex gap-4">
+                    <input id="chat-input" type="text" placeholder="Tanya sesuatu dari buku..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                    <button onclick="sendMessage()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-xl transition">Kirim</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showPage(page) {
+            document.getElementById('page-home').classList.add('hidden');
+            document.getElementById('page-chat').classList.add('hidden');
+            document.getElementById('page-' + page).classList.remove('hidden');
+        }
+
+        // Fetch Status PC
+        fetch('data/status_live.json').then(r => r.json()).then(data => {
+            document.getElementById('status-content').innerHTML = `
+                <p>CPU: ${data.CPU_Usage}%</p>
+                <p>RAM: ${data.RAM_Free_GB} GB Free</p>
+                <p class="text-xs text-gray-500 text-cyan-800">Sync: ${data.Timestamp}</p>
+            `;
+        });
+
+        // Fetch Berita
+        fetch('data/latest_news.json').then(r => r.json()).then(data => {
+            const container = document.getElementById('news-content');
+            container.innerHTML = data.Articles.map(a => `
+                <div class="border-b border-gray-800 pb-2">
+                    <a href="${a.url}" target="_blank" class="hover:text-cyan-400">${a.title}</a>
+                </div>
+            `).join('');
+        });
+
+        // FUNGSI CHAT PINTAR (Membaca Buku)
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-box');
+            const query = input.value.trim().toLowerCase();
+            
+            if(!query) return;
+
+            // Tampilkan Pesan User
+            box.innerHTML += `<div class="max-w-3xl mx-auto text-right mb-4"><span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${input.value}</span></div>`;
+            input.value = "";
+
+            try {
+                // Ambil Database Buku
+                const res = await fetch('data/latest_book.json');
+                const book = await res.json();
+                const content = book.Content;
+                
+                // Cari posisi kata kunci
+                const index = content.toLowerCase().indexOf(query);
+                let responseText = "";
+
+                if (index !== -1) {
+                    // Ambil potongan teks 400 karakter di sekitar temuan
+                    const start = Math.max(0, index - 50);
+                    const end = Math.min(content.length, index + 350);
+                    const fragment = content.substring(start, end);
+                    responseText = `<b>Analisis Buku ("${book.Title}"):</b><br><br> "...${fragment}..."`;
+                } else {
+                    responseText = "Saya sudah menelusuri isi buku, namun topik tersebut tidak ditemukan. Coba gunakan kata kunci lain yang lebih spesifik.";
+                }
+
+                // Tampilkan Jawaban AI
+                setTimeout(() => {
+                    box.innerHTML += `
+                        <div class="max-w-3xl mx-auto text-left mb-4">
+                            <div class="glass p-5 rounded-xl ai-message bg-cyan-950/20">
+                                🤖 ${responseText}
                             </div>
-                        </div>
-                    `;
-                });
-            })
-            .catch(err => {
-                document.getElementById('news-feed').innerHTML = "Belum ada berita yang ditambang.";
-            });
+                        </div>`;
+                    box.scrollTop = box.scrollHeight;
+                }, 600);
+
+            } catch (err) {
+                box.innerHTML += `<div class="text-red-500 text-center text-xs">Sistem gagal mengakses database buku.</div>`;
+            }
+        }
     </script>
 </body>
 </html>
