@@ -49,22 +49,23 @@
         <div id="page-chat" class="hidden flex flex-col h-full">
             <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6">
                 <div class="max-w-3xl mx-auto glass p-4 rounded-xl text-gray-400">
-                    Halo! Saya AI MJB-Edu. Saya sudah membaca buku Anda. Silakan tanya apa saja terkait isi buku tersebut!
+                    Halo! Saya AI MJB-Edu. Saya sudah membaca buku Anda. Silakan tanya apa saja!
                 </div>
             </div>
             
             <div class="p-8 border-t border-gray-800 bg-black/50">
                 <div class="max-w-3xl mx-auto flex gap-4">
-                    <input id="chat-input" type="text" placeholder="Tanya sesuatu dari buku..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                    <input id="chat-input" type="text" placeholder="Tanya sesuatu dari buku..." 
+                        class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500"
+                        onkeypress="if(event.key === 'Enter') sendMessage()">
                     <button onclick="sendMessage()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-xl transition">Kirim</button>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-    // Konfigurasi Gemini (Nanti kita pindahkan ke Cloudflare Worker untuk keamanan penuh)
+    // Konfigurasi Gemini
     const GEMINI_API_KEY = "AIzaSyCJiqxu1mps56EP9T5MukN6V_1fewY1u_Q"; 
 
     function showPage(page) {
@@ -73,26 +74,26 @@
         document.getElementById('page-' + page).classList.remove('hidden');
     }
 
-    // Fetch Status PC
+    // Load Data Sensor PC
     fetch('data/status_live.json').then(r => r.json()).then(data => {
         document.getElementById('status-content').innerHTML = `
             <p>CPU: ${data.CPU_Usage}%</p>
             <p>RAM: ${data.RAM_Free_GB} GB Free</p>
             <p class="text-xs text-gray-500 text-cyan-800">Sync: ${data.Timestamp}</p>
         `;
-    });
+    }).catch(e => console.log("Sensor data not found yet."));
 
-    // Fetch Berita
+    // Load Data Berita
     fetch('data/latest_news.json').then(r => r.json()).then(data => {
         const container = document.getElementById('news-content');
         container.innerHTML = data.Articles.map(a => `
             <div class="border-b border-gray-800 pb-2">
-                <a href="${a.url}" target="_blank" class="hover:text-cyan-400">${a.title}</a>
+                <a href="${a.url}" target="_blank" class="hover:text-cyan-400 text-xs">${a.title}</a>
             </div>
         `).join('');
-    });
+    }).catch(e => console.log("News data not found yet."));
 
-    // FUNGSI CHAT CERDAS (INTEGRASI GEMINI + BUKU)
+    // FUNGSI CHAT UTAMA
     async function sendMessage() {
         const input = document.getElementById('chat-input');
         const box = document.getElementById('chat-box');
@@ -100,46 +101,59 @@
         
         if(!userMsg) return;
 
-        // 1. Tampilkan Pesan User
-        box.innerHTML += `<div class="max-w-3xl mx-auto text-right mb-4"><span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${userMsg}</span></div>`;
+        // 1. Tampilkan Pesan User ke Layar
+        box.innerHTML += `
+            <div class="max-w-3xl mx-auto text-right mb-4">
+                <span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${userMsg}</span>
+            </div>`;
         input.value = "";
         box.scrollTop = box.scrollHeight;
 
         try {
-            // 2. Ambil Data Buku sebagai konteks
-            const res = await fetch('data/latest_book.json');
-            const book = await res.json();
-            
-            // Cari potongan teks yang relevan (Simple search)
-            const index = book.Content.toLowerCase().indexOf(userMsg.toLowerCase());
-            let context = book.Content.substring(0, 2000); // Ambil 2000 karakter pertama sebagai dasar jika tidak ketemu spesifik
-            
-            if (index !== -1) {
-                context = book.Content.substring(Math.max(0, index - 500), index + 1500);
+            // 2. Ambil Konteks dari Buku (JSON)
+            let context = "Tidak ada konteks buku.";
+            try {
+                const resBook = await fetch('data/latest_book.json');
+                if (resBook.ok) {
+                    const book = await resBook.json();
+                    // Cari potongan teks yang relevan agar tidak kebesaran datanya
+                    const index = book.Content.toLowerCase().indexOf(userMsg.toLowerCase());
+                    if (index !== -1) {
+                        context = book.Content.substring(Math.max(0, index - 500), index + 2000);
+                    } else {
+                        context = book.Content.substring(0, 2500); 
+                    }
+                }
+            } catch (bookErr) {
+                console.log("Gagal memuat buku, menggunakan pengetahuan umum AI.");
             }
 
-            // 3. Panggil API Gemini
+            // 3. Kirim ke API Gemini
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{
                         parts: [{
-                            text: `Kamu adalah AI MJB-Edu. Gunakan konteks buku berikut untuk menjawab pertanyaan user. 
-                            Jika tidak ada di buku, jawablah berdasarkan pengetahuanmu tapi beri tahu jika itu di luar buku.
+                            text: `Anda adalah AI MJB-Edu. Gunakan data buku berikut untuk menjawab pertanyaan. 
+                            Jika tidak ada di buku, jawablah dengan pengetahuan umum Anda tapi beri tahu user.
                             
                             KONTEKS BUKU: ${context}
-                            
-                            PERTANYAAN: ${userMsg}`
+                            PERTANYAAN USER: ${userMsg}`
                         }]
                     }]
                 })
             });
 
             const result = await response.json();
+            
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+
             const aiReply = result.candidates[0].content.parts[0].text;
 
-            // 4. Tampilkan Jawaban AI
+            // 4. Tampilkan Jawaban AI ke Layar
             box.innerHTML += `
                 <div class="max-w-3xl mx-auto text-left mb-4">
                     <div class="glass p-5 rounded-xl ai-message bg-cyan-950/20">
@@ -149,7 +163,8 @@
             box.scrollTop = box.scrollHeight;
 
         } catch (err) {
-            box.innerHTML += `<div class="text-red-500 text-center text-xs">AI sedang offline. Pastikan API Key benar.</div>`;
+            console.error(err);
+            box.innerHTML += `<div class="text-red-500 text-center text-xs">⚠️ Terjadi Kesalahan: ${err.message}</div>`;
         }
     }
     </script>
