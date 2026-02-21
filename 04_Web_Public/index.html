@@ -64,78 +64,94 @@
     </div>
 
     <script>
-        function showPage(page) {
-            document.getElementById('page-home').classList.add('hidden');
-            document.getElementById('page-chat').classList.add('hidden');
-            document.getElementById('page-' + page).classList.remove('hidden');
-        }
+    // Konfigurasi Gemini (Nanti kita pindahkan ke Cloudflare Worker untuk keamanan penuh)
+    const GEMINI_API_KEY = "AIzaSyCJiqxu1mps56EP9T5MukN6V_1fewY1u_Q"; 
 
-        // Fetch Status PC
-        fetch('data/status_live.json').then(r => r.json()).then(data => {
-            document.getElementById('status-content').innerHTML = `
-                <p>CPU: ${data.CPU_Usage}%</p>
-                <p>RAM: ${data.RAM_Free_GB} GB Free</p>
-                <p class="text-xs text-gray-500 text-cyan-800">Sync: ${data.Timestamp}</p>
-            `;
-        });
+    function showPage(page) {
+        document.getElementById('page-home').classList.add('hidden');
+        document.getElementById('page-chat').classList.add('hidden');
+        document.getElementById('page-' + page).classList.remove('hidden');
+    }
 
-        // Fetch Berita
-        fetch('data/latest_news.json').then(r => r.json()).then(data => {
-            const container = document.getElementById('news-content');
-            container.innerHTML = data.Articles.map(a => `
-                <div class="border-b border-gray-800 pb-2">
-                    <a href="${a.url}" target="_blank" class="hover:text-cyan-400">${a.title}</a>
-                </div>
-            `).join('');
-        });
+    // Fetch Status PC
+    fetch('data/status_live.json').then(r => r.json()).then(data => {
+        document.getElementById('status-content').innerHTML = `
+            <p>CPU: ${data.CPU_Usage}%</p>
+            <p>RAM: ${data.RAM_Free_GB} GB Free</p>
+            <p class="text-xs text-gray-500 text-cyan-800">Sync: ${data.Timestamp}</p>
+        `;
+    });
 
-        // FUNGSI CHAT PINTAR (Membaca Buku)
-        async function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const box = document.getElementById('chat-box');
-            const query = input.value.trim().toLowerCase();
+    // Fetch Berita
+    fetch('data/latest_news.json').then(r => r.json()).then(data => {
+        const container = document.getElementById('news-content');
+        container.innerHTML = data.Articles.map(a => `
+            <div class="border-b border-gray-800 pb-2">
+                <a href="${a.url}" target="_blank" class="hover:text-cyan-400">${a.title}</a>
+            </div>
+        `).join('');
+    });
+
+    // FUNGSI CHAT CERDAS (INTEGRASI GEMINI + BUKU)
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const box = document.getElementById('chat-box');
+        const userMsg = input.value.trim();
+        
+        if(!userMsg) return;
+
+        // 1. Tampilkan Pesan User
+        box.innerHTML += `<div class="max-w-3xl mx-auto text-right mb-4"><span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${userMsg}</span></div>`;
+        input.value = "";
+        box.scrollTop = box.scrollHeight;
+
+        try {
+            // 2. Ambil Data Buku sebagai konteks
+            const res = await fetch('data/latest_book.json');
+            const book = await res.json();
             
-            if(!query) return;
-
-            // Tampilkan Pesan User
-            box.innerHTML += `<div class="max-w-3xl mx-auto text-right mb-4"><span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${input.value}</span></div>`;
-            input.value = "";
-
-            try {
-                // Ambil Database Buku
-                const res = await fetch('data/latest_book.json');
-                const book = await res.json();
-                const content = book.Content;
-                
-                // Cari posisi kata kunci
-                const index = content.toLowerCase().indexOf(query);
-                let responseText = "";
-
-                if (index !== -1) {
-                    // Ambil potongan teks 400 karakter di sekitar temuan
-                    const start = Math.max(0, index - 50);
-                    const end = Math.min(content.length, index + 350);
-                    const fragment = content.substring(start, end);
-                    responseText = `<b>Analisis Buku ("${book.Title}"):</b><br><br> "...${fragment}..."`;
-                } else {
-                    responseText = "Saya sudah menelusuri isi buku, namun topik tersebut tidak ditemukan. Coba gunakan kata kunci lain yang lebih spesifik.";
-                }
-
-                // Tampilkan Jawaban AI
-                setTimeout(() => {
-                    box.innerHTML += `
-                        <div class="max-w-3xl mx-auto text-left mb-4">
-                            <div class="glass p-5 rounded-xl ai-message bg-cyan-950/20">
-                                🤖 ${responseText}
-                            </div>
-                        </div>`;
-                    box.scrollTop = box.scrollHeight;
-                }, 600);
-
-            } catch (err) {
-                box.innerHTML += `<div class="text-red-500 text-center text-xs">Sistem gagal mengakses database buku.</div>`;
+            // Cari potongan teks yang relevan (Simple search)
+            const index = book.Content.toLowerCase().indexOf(userMsg.toLowerCase());
+            let context = book.Content.substring(0, 2000); // Ambil 2000 karakter pertama sebagai dasar jika tidak ketemu spesifik
+            
+            if (index !== -1) {
+                context = book.Content.substring(Math.max(0, index - 500), index + 1500);
             }
+
+            // 3. Panggil API Gemini
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Kamu adalah AI MJB-Edu. Gunakan konteks buku berikut untuk menjawab pertanyaan user. 
+                            Jika tidak ada di buku, jawablah berdasarkan pengetahuanmu tapi beri tahu jika itu di luar buku.
+                            
+                            KONTEKS BUKU: ${context}
+                            
+                            PERTANYAAN: ${userMsg}`
+                        }]
+                    }]
+                })
+            });
+
+            const result = await response.json();
+            const aiReply = result.candidates[0].content.parts[0].text;
+
+            // 4. Tampilkan Jawaban AI
+            box.innerHTML += `
+                <div class="max-w-3xl mx-auto text-left mb-4">
+                    <div class="glass p-5 rounded-xl ai-message bg-cyan-950/20">
+                        🤖 <b>AI MJB-Edu:</b><br><br>${aiReply.replace(/\n/g, '<br>')}
+                    </div>
+                </div>`;
+            box.scrollTop = box.scrollHeight;
+
+        } catch (err) {
+            box.innerHTML += `<div class="text-red-500 text-center text-xs">AI sedang offline. Pastikan API Key benar.</div>`;
         }
+    }
     </script>
 </body>
 </html>
