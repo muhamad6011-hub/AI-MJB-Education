@@ -121,6 +121,30 @@
         }
     </style>
 </head>
+<div class="card" style="margin-top: 20px; border: 1px solid #00f3ff; padding: 15px; border-radius: 10px;">
+    <h2 style="color: #00f3ff;">🌐 AI Global News Feed</h2>
+    <div id="news-container">Memuat berita terbaru...</div>
+</div>
+
+<script>
+    // Fungsi untuk mengambil data berita
+    fetch('data/latest_news.json')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('news-container');
+            container.innerHTML = ''; // Hapus tulisan memuat
+            
+            data.Articles.forEach(article => {
+                const newsItem = `
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                        <h4 style="margin: 0;"><a href="${article.url}" target="_blank" style="color: #fff; text-decoration: none;">${article.title}</a></h4>
+                        <p style="font-size: 0.8em; color: #888;">${article.source.name} - ${new Date(article.publishedAt).toLocaleString()}</p>
+                    </div>
+                `;
+                container.innerHTML += newsItem;
+            });
+        });
+</script>
 <body>
 
 <header>
