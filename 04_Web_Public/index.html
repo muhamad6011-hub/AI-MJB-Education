@@ -3,171 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MJB-Edu AI Portal</title>
+    <title>MJB-Edu AI Portal (Big Data System)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #e5e7eb; }
+        body { background-color: #050505; color: #e5e7eb; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .sidebar-item:hover { background: rgba(0, 243, 255, 0.1); color: #00f3ff; }
+        .ai-message { border-left: 4px solid #06b6d4; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .ai-message { border-left: 4px solid #06b6d4; }
+        input, textarea { background: #111 !important; border: 1px solid #333 !important; color: white !important; }
+        input:focus { border-color: #06b6d4 !important; outline: none; }
+        .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <div class="w-64 glass flex flex-col p-4">
-        <h1 class="text-xl font-bold mb-8 text-cyan-400">MJB-EDU <span class="text-xs text-white block">Intelligence System</span></h1>
-        
+    <div class="w-64 glass flex flex-col p-4 z-50">
+        <h1 class="text-xl font-bold mb-8 text-cyan-400 uppercase tracking-tighter">
+            MJB-EDU <span class="text-[10px] text-white block opacity-50">Intelligence System</span>
+        </h1>
         <nav class="flex-1">
-            <button onclick="showPage('home')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition">🏠 Dashboard</button>
-            <button onclick="showPage('chat')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition">💬 AI Chat</button>
-            <button class="sidebar-item w-full text-left p-3 rounded-lg mb-2 opacity-50 cursor-not-allowed">📊 Big Data (Soon)</button>
+            <button onclick="showPage('home')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition flex items-center gap-2">🏠 Dashboard</button>
+            <button onclick="showPage('chat')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition flex items-center gap-2">💬 AI Chat</button>
+            <button onclick="showPage('admin')" class="sidebar-item w-full text-left p-3 rounded-lg mb-2 transition text-yellow-500 font-bold flex items-center gap-2">🔐 Admin Training</button>
         </nav>
-
-        <div class="text-xs text-gray-500 border-t border-gray-800 pt-4">
-            System Status: <span class="text-green-500">Online</span>
-        </div>
+        <div class="text-[10px] text-gray-500 border-t border-gray-800 pt-4" id="login-status">Status: Guest Mode</div>
     </div>
 
-    <div class="flex-1 flex flex-col overflow-y-auto">
+    <div class="flex-1 flex flex-col h-full relative">
         
-        <div id="page-home" class="p-8">
-            <h2 class="text-3xl font-bold mb-6">Welcome Back, Master.</h2>
+        <div id="page-home" class="p-8 overflow-y-auto h-full">
+            <h2 class="text-3xl font-bold mb-6 tracking-tight text-white">System Dashboard</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-6 rounded-2xl">
-                    <h3 class="text-cyan-400 font-bold mb-4">PC STATUS</h3>
-                    <div id="status-content" class="space-y-2 text-sm text-gray-300">Memuat sensor...</div>
-                </div>
-                <div class="glass p-6 rounded-2xl">
-                    <h3 class="text-cyan-400 font-bold mb-4">WORLD NEWS</h3>
-                    <div id="news-content" class="space-y-4 text-xs h-64 overflow-y-auto">Memuat berita...</div>
+                <div class="glass p-6 rounded-2xl border-l-4 border-cyan-500 glow-cyan">
+                    <h3 class="text-cyan-400 font-bold mb-6 text-xs uppercase tracking-widest flex items-center gap-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                        </span>
+                        PC Real-time Status
+                    </h3>
+                    <div id="status-content" class="space-y-6 text-sm">
+                        <div class="text-xs italic text-gray-500 animate-pulse">Menghubungkan ke sensor MJB-Edu...</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="page-chat" class="hidden flex flex-col h-full">
+        <div id="page-chat" class="hidden flex flex-col h-full bg-[#080808]">
             <div id="chat-box" class="flex-1 overflow-y-auto p-8 space-y-6">
-                <div class="max-w-3xl mx-auto glass p-4 rounded-xl text-gray-400">
-                    Halo! Saya AI MJB-Edu. Saya sudah membaca buku Anda. Silakan tanya apa saja!
+                <div class="max-w-3xl mx-auto glass p-6 rounded-xl text-gray-400 border-dashed border-gray-700 text-sm italic text-center">
+                    Sistem Big Data MJB-Edu Siap. Master Ruslan dapat bertanya di bawah ini.
                 </div>
             </div>
-            
-            <div class="p-8 border-t border-gray-800 bg-black/50">
+            <div class="p-8 border-t border-white/5 bg-black/20">
                 <div class="max-w-3xl mx-auto flex gap-4">
-                    <input id="chat-input" type="text" placeholder="Tanya sesuatu dari buku..." 
-                        class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500"
+                    <input id="chat-input" type="text" placeholder="Tanyakan sesuatu pada AI..." 
+                        class="flex-1 rounded-xl px-4 py-4 text-sm focus:outline-none" 
                         onkeypress="if(event.key === 'Enter') sendMessage()">
-                    <button onclick="sendMessage()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-xl transition">Kirim</button>
+                    <button onclick="sendMessage()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-4 rounded-xl font-bold transition shadow-lg shadow-cyan-900/20">KIRIM</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-admin-login" class="hidden flex flex-col items-center justify-center h-full">
+            <div class="glass p-8 rounded-2xl w-96 shadow-2xl">
+                <h2 class="text-xl font-bold mb-6 text-center text-yellow-500 font-mono tracking-widest uppercase">Admin Access</h2>
+                <div class="space-y-4">
+                    <input id="admin-email" type="text" placeholder="Email Admin" class="w-full p-4 rounded-xl outline-none">
+                    <input id="admin-pass" type="password" placeholder="Password" class="w-full p-4 rounded-xl outline-none">
+                    <button onclick="handleLogin()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-bold p-4 rounded-xl transition uppercase tracking-widest">Unlock System</button>
+                </div>
+                <p id="login-err" class="text-red-500 text-[10px] mt-4 text-center hidden font-bold">AKSES DITOLAK!</p>
+            </div>
+        </div>
+
+        <div id="page-admin" class="hidden p-8 overflow-y-auto h-full">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-yellow-500 uppercase tracking-widest">AI Trainer Console</h2>
+                    <p class="text-xs text-gray-500 mt-1">Membangun Memori Personal Master Ruslan.</p>
+                </div>
+                <button onclick="logout()" class="bg-red-900/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-xl text-xs">Logout</button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass p-6 rounded-2xl h-fit border-t-2 border-cyan-500">
+                    <h3 class="text-sm font-bold mb-6 text-cyan-400">💾 INPUT LOGIKA BARU</h3>
+                    <div class="space-y-4">
+                        <input id="train-trigger" type="text" placeholder="Jika saya tanya: (contoh: siapa master)" class="w-full p-3 rounded-lg outline-none text-sm">
+                        <textarea id="train-response" rows="5" placeholder="Maka jawaban AI: (tulis jawaban di sini)" class="w-full p-3 rounded-lg outline-none text-sm"></textarea>
+                        <button onclick="saveTraining()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-bold transition">SIMPAN KE BIG DATA</button>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-2xl border-t-2 border-gray-700">
+                    <h3 class="text-sm font-bold mb-6 text-gray-400 uppercase tracking-widest">Memori Terdaftar</h3>
+                    <div id="memory-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 text-xs"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-    // Konfigurasi Gemini
-    const GEMINI_API_KEY = "AIzaSyCJiqxu1mps56EP9T5MukN6V_1fewY1u_Q"; 
+   <script>
+        const DATA_PATH = "./data";
+        const BRIDGE_URL = "http://localhost:5000/save_memory";
+        let isLoggedIn = false;
+        let aiMemory = JSON.parse(localStorage.getItem('ai_memory')) || [];
 
-    function showPage(page) {
-        document.getElementById('page-home').classList.add('hidden');
-        document.getElementById('page-chat').classList.add('hidden');
-        document.getElementById('page-' + page).classList.remove('hidden');
-    }
-
-    // Load Data Sensor PC
-    fetch('data/status_live.json').then(r => r.json()).then(data => {
-        document.getElementById('status-content').innerHTML = `
-            <p>CPU: ${data.CPU_Usage}%</p>
-            <p>RAM: ${data.RAM_Free_GB} GB Free</p>
-            <p class="text-xs text-gray-500 text-cyan-800">Sync: ${data.Timestamp}</p>
-        `;
-    }).catch(e => console.log("Sensor data not found yet."));
-
-    // Load Data Berita
-    fetch('data/latest_news.json').then(r => r.json()).then(data => {
-        const container = document.getElementById('news-content');
-        container.innerHTML = data.Articles.map(a => `
-            <div class="border-b border-gray-800 pb-2">
-                <a href="${a.url}" target="_blank" class="hover:text-cyan-400 text-xs">${a.title}</a>
-            </div>
-        `).join('');
-    }).catch(e => console.log("News data not found yet."));
-
-    // FUNGSI CHAT UTAMA
-   async function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const box = document.getElementById('chat-box');
-        const userMsg = input.value.trim();
-        
-        if(!userMsg) return;
-
-        // 1. Tampilkan Pesan User ke Layar
-        box.innerHTML += `
-            <div class="max-w-3xl mx-auto text-right mb-4">
-                <span class="bg-cyan-900/50 p-3 rounded-xl inline-block"><b>Anda:</b> ${userMsg}</span>
-            </div>`;
-        input.value = "";
-        box.scrollTop = box.scrollHeight;
-
-        try {
-            // 2. Ambil Konteks dari Buku (JSON)
-            let context = "Tidak ada konteks buku.";
-            try {
-                const resBook = await fetch('data/latest_book.json');
-                if (resBook.ok) {
-                    const book = await resBook.json();
-                    // Cari potongan teks yang relevan
-                    const index = book.Content.toLowerCase().indexOf(userMsg.toLowerCase());
-                    if (index !== -1) {
-                        context = book.Content.substring(Math.max(0, index - 500), index + 2000);
-                    } else {
-                        context = book.Content.substring(0, 2500); 
-                    }
-                }
-            } catch (bookErr) {
-                console.log("Gagal memuat buku, menggunakan pengetahuan umum AI.");
+        function showPage(page) {
+            ['page-home', 'page-chat', 'page-admin', 'page-admin-login'].forEach(p => document.getElementById(p).classList.add('hidden'));
+            if (page === 'admin' && !isLoggedIn) {
+                document.getElementById('page-admin-login').classList.remove('hidden');
+                return;
             }
+            document.getElementById('page-' + page).classList.remove('hidden');
+            if (page === 'admin') renderMemory();
+        }
 
-            // 3. Kirim ke API Gemini (Gunakan Endpoint v1 Stable)
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `Anda adalah AI MJB-Edu. Gunakan data buku berikut untuk menjawab pertanyaan. 
-                            Jika tidak ada di buku, jawablah dengan pengetahuan umum Anda tapi beri tahu user.
-                            
-                            KONTEKS BUKU: ${context}
-                            PERTANYAAN USER: ${userMsg}`
-                        }]
-                    }]
-                })
-            });
+        function handleLogin() {
+            const email = document.getElementById('admin-email').value;
+            const pass = document.getElementById('admin-pass').value;
+            if (email === "muhamadruslan5570@gmail.com" && pass === "06101994Ok@") {
+                isLoggedIn = true;
+                document.getElementById('login-status').innerText = "Status: Admin (Ruslan)";
+                document.getElementById('login-status').className = "text-[10px] text-yellow-500 border-t border-gray-800 pt-4 font-bold uppercase tracking-widest";
+                showPage('admin');
+            } else {
+                document.getElementById('login-err').classList.remove('hidden');
+            }
+        }
 
-            const result = await response.json();
+        function logout() {
+            isLoggedIn = false;
+            document.getElementById('login-status').innerText = "Status: Guest Mode";
+            document.getElementById('login-status').className = "text-[10px] text-gray-500 border-t border-gray-800 pt-4";
+            showPage('home');
+        }
+
+        // ==========================================
+        // LOGIKA TRAINING (DIPERBAIKI)
+        // ==========================================
+        async function saveTraining() {
+            const trgInput = document.getElementById('train-trigger');
+            const resInput = document.getElementById('train-response');
             
-            if (result.error) {
-                throw new Error(result.error.message);
+            // Membersihkan input dari spasi berlebih
+            const trigger = trgInput.value.toLowerCase().trim();
+            const response = resInput.value.trim();
+
+            if (trigger && response) {
+                const newData = { 
+                    trigger, 
+                    response, 
+                    date: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) 
+                };
+
+                try {
+                    // Coba kirim ke Python Bridge
+                    const res = await fetch(BRIDGE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newData)
+                    });
+                    
+                    if(!res.ok) throw new Error();
+
+                    aiMemory.push(newData);
+                    localStorage.setItem('ai_memory', JSON.stringify(aiMemory));
+                    alert("Berhasil disimpan ke Big Data & File Fisik.");
+                } catch (e) {
+                    // Fallback ke Local Storage saja jika Python mati
+                    aiMemory.push(newData);
+                    localStorage.setItem('ai_memory', JSON.stringify(aiMemory));
+                    alert("Tersimpan di Lokal Browser. Jalankan Python untuk Backup Fisik.");
+                }
+                
+                trgInput.value = ""; 
+                resInput.value = "";
+                renderMemory();
+            } else {
+                alert("Mohon isi Trigger dan Respon!");
             }
+        }
 
-            // Pastikan struktur response benar
-            const aiReply = result.candidates[0].content.parts[0].text;
+        function renderMemory() {
+            const list = document.getElementById('memory-list');
+            if (!list) return;
+            list.innerHTML = aiMemory.map((m, i) => `
+                <div class="glass p-4 rounded-xl border-l-2 border-yellow-500/50 relative group mb-4">
+                    <button onclick="deleteMemory(${i})" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition hover:scale-125">✕</button>
+                    <div class="text-[9px] text-cyan-500 font-mono mb-1">${m.date || 'Legacy Record'}</div>
+                    <div class="text-xs font-bold text-gray-200 mb-1">KUNCI: "${m.trigger}"</div>
+                    <div class="text-[11px] text-gray-500 leading-relaxed italic border-t border-white/5 pt-2 mt-2">"${m.response}"</div>
+                </div>
+            `).reverse().join('');
+        }
 
-            // 4. Tampilkan Jawaban AI ke Layar
-            box.innerHTML += `
-                <div class="max-w-3xl mx-auto text-left mb-4">
-                    <div class="glass p-5 rounded-xl ai-message bg-cyan-950/20">
-                        🤖 <b>AI MJB-Edu:</b><br><br>${aiReply.replace(/\n/g, '<br>')}
-                    </div>
-                </div>`;
+        function deleteMemory(i) {
+            if(confirm("Hapus memori ini secara permanen?")) {
+                // Sesuai urutan reverse
+                const actualIndex = aiMemory.length - 1 - i;
+                aiMemory.splice(actualIndex, 1);
+                localStorage.setItem('ai_memory', JSON.stringify(aiMemory));
+                renderMemory();
+            }
+        }
+
+        // ==========================================
+        // LOGIKA CHAT (DIOPTIMALKAN AGAR TIDAK "DATA TIDAK DITEMUKAN")
+        // ==========================================
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-box');
+            if(!input.value.trim()) return;
+
+            const userText = input.value.trim();
+            const lowQ = userText.toLowerCase();
+            input.value = "";
+
+            // Tampilkan Pesan Master
+            box.innerHTML += `<div class="max-w-3xl mx-auto text-right mb-6"><span class="bg-cyan-900/40 p-4 rounded-2xl rounded-tr-none inline-block text-sm border border-cyan-500/20 text-white shadow-lg">${userText}</span></div>`;
             box.scrollTop = box.scrollHeight;
 
-        } catch (err) {
-            console.error(err);
-            box.innerHTML += `<div class="text-red-500 text-center text-xs">⚠️ Terjadi Kesalahan: ${err.message}</div>`;
+            // 1. CARI DI MEMORI LATIHAN (Prioritas 1)
+            // Menggunakan Logika .includes() dua arah
+            const match = aiMemory.find(m => 
+                lowQ.includes(m.trigger.toLowerCase()) || 
+                m.trigger.toLowerCase().includes(lowQ)
+            );
+
+            if (match) {
+                showAiResponse("🤖 MJB-EDU PRIVATE MEMORY", match.response, "yellow-500");
+                return;
+            }
+
+            // 2. CARI DI DATABASE BUKU (Prioritas 2)
+            try {
+                const res = await fetch(`${DATA_PATH}/latest_book.json`);
+                const book = await res.json();
+                const content = book.Content || "";
+                
+                // Hilangkan kata tanya umum agar pencarian lebih fokus
+                const filterWords = /(siapa|apa|bagaimana|mengapa|kenapa|tolong|jelaskan|tentang|tahu|adalah)/g;
+                let cleanKey = lowQ.replace(filterWords, "").trim();
+                
+                const searchIdx = content.toLowerCase().indexOf(cleanKey || lowQ);
+                
+                if (searchIdx !== -1 && (cleanKey.length > 2 || lowQ.length > 2)) {
+                    let fragment = content.substring(Math.max(0, searchIdx - 50), searchIdx + 450);
+                    showAiResponse("📚 MJB-EDU KNOWLEDGE BASE", `...${fragment}...`, "cyan-400");
+                } else {
+                    // Respon jika benar-benar tidak ada
+                    box.innerHTML += `<div class="text-center py-4 text-[10px] text-gray-600 italic tracking-widest animate-pulse">🤖 DATA TIDAK DITEMUKAN PADA MEMORI MANAPUN.</div>`;
+                }
+            } catch (e) {
+                console.error("Knowledge base offline");
+            }
+            box.scrollTop = box.scrollHeight;
         }
-    }
+
+        function showAiResponse(title, text, colorClass) {
+            const box = document.getElementById('chat-box');
+            setTimeout(() => {
+                box.innerHTML += `
+                    <div class="max-w-3xl mx-auto py-2">
+                        <div class="text-${colorClass} text-[10px] font-bold mb-1 uppercase tracking-widest italic">${title}</div>
+                        <div class="glass p-5 rounded-2xl rounded-tl-none ai-message border-${colorClass}/30 text-sm leading-relaxed text-gray-200">
+                            ${text}
+                        </div>
+                    </div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 300);
+        }
+
+        function loadStatus() {
+            fetch(`${DATA_PATH}/status_live.json`).then(r => r.json()).then(data => {
+                const cpuColor = data.CPU_Usage > 80 ? 'bg-red-500' : 'bg-cyan-500';
+                document.getElementById('status-content').innerHTML = `
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase"><span>CPU Processor</span><span class="text-cyan-400 font-mono">${data.CPU_Usage}%</span></div>
+                        <div class="w-full bg-white/5 rounded-full h-1 overflow-hidden border border-white/5">
+                            <div class="${cpuColor} h-full transition-all duration-1000" style="width: ${data.CPU_Usage}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase"><span>RAM Free</span><span class="text-cyan-400 font-mono">${data.RAM_Free_GB} GB</span></div>
+                        <div class="w-full bg-white/5 rounded-full h-1 overflow-hidden border border-white/5">
+                            <div class="bg-purple-500 h-full transition-all duration-1000" style="width: ${(data.RAM_Free_GB/16)*100}%"></div>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-white/5 flex justify-between text-[8px] opacity-30 font-mono"><span>MJB-SYS v2.2</span><span>${data.Timestamp}</span></div>
+                `;
+            }).catch(() => {});
+        }
+        setInterval(loadStatus, 5000); 
+        loadStatus();
     </script>
 </body>
 </html>
